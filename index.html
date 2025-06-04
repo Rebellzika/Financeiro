@@ -536,13 +536,13 @@
 
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyDilLVHv1d6iv_ClNwPtL14IZ9G64Gf9Ks",
-            authDomain: "financeirogg-8fd82.firebaseapp.com",
-            projectId: "financeirogg-8fd82",
-            storageBucket: "financeirogg-8fd82.appspot.com", 
-            messagingSenderId: "208882420194",
-            appId: "1:208882420194:web:dcc04f35a8f9418c5711bb",
-            measurementId: "G-S20XXLWPX7"
+            apiKey: "AIzaSyDilLVHv1d6iv_ClNwPtL14IZ9G64Gf9Ks", // Substitua pela sua API Key real
+            authDomain: "financeirogg-8fd82.firebaseapp.com", // Substitua pelo seu Auth Domain real
+            projectId: "financeirogg-8fd82", // Substitua pelo seu Project ID real
+            storageBucket: "financeirogg-8fd82.appspot.com",  // Substitua pelo seu Storage Bucket real
+            messagingSenderId: "208882420194", // Substitua pelo seu Messaging Sender ID real
+            appId: "1:208882420194:web:dcc04f35a8f9418c5711bb", // Substitua pela sua App ID real
+            measurementId: "G-S20XXLWPX7" // Opcional: Substitua pelo seu Measurement ID real
         };
 
         // Initialize Firebase
@@ -930,7 +930,8 @@
             if (!validateForm(authForm)) return;
 
             // For registration, check if it's enabled (unless it's the admin potentially creating their first account)
-            if (!isLoginMode && !registrationsEnabled && emailInput.value !== "EMAIL_DO_SEU_ADMIN_AQUI") { // Replace with actual admin email or a better check if needed
+            // Substitua "EMAIL_DO_SEU_ADMIN_AQUI" pelo email real do admin se necessário para este fluxo específico.
+            if (!isLoginMode && !registrationsEnabled && emailInput.value !== "EMAIL_DO_SEU_ADMIN_AQUI") { 
                  showNotification("Os registros estão temporariamente desabilitados.", "warning");
                  return;
             }
@@ -949,8 +950,6 @@
                     // This is a new registration
                     const userCredential = await createUserWithEmailAndPassword(fbAuth, email, password);
                     // Assign 'member' role by default. If this UID matches ADMIN_UID, onAuthStateChanged will override to 'admin'.
-                    // Or, if it's the very first user ever, they could be made admin (more complex logic not implemented here).
-                    // Forcing ADMIN_UID to be set correctly is key.
                     await createUserProfile(userCredential.user, 'member'); 
                     showNotification('Cadastro bem-sucedido! Faça o login.', 'success');
                     isLoginMode = true; 
@@ -1732,7 +1731,26 @@
             adminControlsSection.classList.toggle('hidden', userRole !== 'admin');
             updateRegistrationToggleUI(); // Initial state for admin button
 
-            document.querySelectorAll('.filter-context-btn').forEach(btn => btn.addEventListener('click', (e) => { filterContext = e.target.dataset.context; currentPage = 1; updateFilterContextButtons(); renderCurrentView(); }));
+            // ***** INÍCIO DA CORREÇÃO *****
+            document.querySelectorAll('.filter-context-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const newContext = e.target.dataset.context;
+                    // Se o contexto está a mudar OU se não estamos atualmente no ecrã 'overview',
+                    // então atualize o contexto e navegue para o ecrã 'overview'.
+                    if (filterContext !== newContext || currentView !== 'overview') {
+                        filterContext = newContext;         // Define o contexto de filtro global
+                        updateFilterContextButtons();       // Atualiza o estado visual dos botões de contexto
+                        navigateTo('overview');             // Navega para a página de visão geral.
+                                                            // navigateTo definirá currentView = 'overview',
+                                                            // redefinirá paginação/pesquisa e, em seguida, chamará renderCurrentView(),
+                                                            // que executará renderOverview() usando o novo filterContext.
+                    }
+                    // Se filterContext já for o newContext E currentView for 'overview',
+                    // então nenhuma ação é necessária, pois a visualização já está corretamente exibida.
+                });
+            });
+            // ***** FIM DA CORREÇÃO *****
+
             toggleBalancesBtn.addEventListener('click', () => { showBalances = !showBalances; renderToggleBalancesButton(); renderCurrentView(); });
             darkModeToggleBtn.addEventListener('click', () => { 
                 const isDarkMode = document.body.classList.toggle('dark');
